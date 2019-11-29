@@ -12,6 +12,7 @@ if sys.version_info[0] == 2:
 else:
     from urllib.request import urlopen  # Python3
 
+
 def save_video(videopath,url):
     data = urlopen(url).read()
     print("get data finish ",videopath,url)
@@ -19,32 +20,25 @@ def save_video(videopath,url):
     vfile.write(data)
     vfile.close()
 
-filename = "search"
+filename = "mymoment"
 count=0
-vfile = open('./html/%s.html'%filename, 'rb')
+vfile = open('./doc/%s.docx'%filename, 'rb')
 html_str = ""
 for line in vfile.readlines():
     html_str += line.decode("utf-8")
 
-'''
-matchObj = re.search( r'<source src="([^"]*)"', html_str, re.M|re.I)
-print("len(matchObj.group(1))",len(matchObj.group(1)))
-url = html.unescape(matchObj.group(1))
-if matchObj:
-   print ("search --> searchObj.group(1) : ", urlopen)
-'''
-
 pattern = re.compile( r'<source src="([^"]*)"') 
 result1 = pattern.findall(html_str)
-print(result1)
+print("total:",len(result1))
 
 video_url_list = result1
 #video_url_list = []
 for url in video_url_list:
     try:
         url1 = html.unescape(url)
-
-        print(count,count/len(video_url_list)*100,"%%, download: ",url1)
+        print("---------------")
+        print(count,"%.2f"%(count/len(video_url_list)*100),"%")
+        print( "download: ",url1)
         hl = hashlib.md5()
 
         hl.update(url1.encode(encoding='utf-8'))
@@ -55,14 +49,14 @@ for url in video_url_list:
 
         html_str = html_str.replace("<source src=\""+url,"<source src=\"./"+filename+"_files/"+videofilename+".mp4",1)
 
+        count +=1
+
         if os.path.exists(videopath): 
-            print("exists",url1)
+            print("exists",videopath)
             continue
 
         save_video(videopath,url1)
 
-
-        count +=1
         print('download count',count)
 
     except Exception as e:
@@ -75,3 +69,5 @@ vfile2 = open('./html/%s_ok.html'%filename, 'wb')
 vfile2.write(html_str.encode('utf-8'))
 
 vfile2.close()
+
+print("finish:"+'./html/%s_ok.html'%filename)
