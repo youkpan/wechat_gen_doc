@@ -10,7 +10,7 @@ import re
 import json
 import hashlib
 import html
-
+import cv2
 '''
 from wordinserter import insert, parse
 from comtypes.client import CreateObject
@@ -156,6 +156,7 @@ for timelineobj in jsonObj:
 
     media_url =find_media_url(htmll)
     counter = 0
+
     if len(media_url)>0:
         path0 = "./doc/"+username+"/files/artical/"
         if not has_artical:
@@ -201,17 +202,33 @@ for timelineobj in jsonObj:
 
             if download_ok==1:
                 try:
-                    p = doc_new.add_picture(mediafilepath, width=Inches(1.25))
+                    try:
+                        if( has_artical ):
+                            doc_new.add_picture(mediafilepath, width=Inches(1.25),height=Inches(1.25))
+                        else:
+                            doc_new.add_picture(mediafilepath, width=Inches(2))
+                        
+                    except Exception as e:
+                        img = cv2.imread(mediafilepath, cv2.IMREAD_UNCHANGED)
+                        cv2.imwrite(mediafilepath,img, [int( cv2.IMWRITE_JPEG_QUALITY), 95])
+                        if( has_artical ):
+                            doc_new.add_picture(mediafilepath, width=Inches(1.25),height=Inches(1.25))
+                        else:
+                            doc_new.add_picture(mediafilepath, width=Inches(2))
+                        print("resave ",mediafilepath)
+                    
                     if( not has_artical ):
-                        hyperlink = add_hyperlink(p, url1, '链接',   'FF8822', False)
+                        p = doc_new.add_paragraph(  )
+                        hyperlink = add_hyperlink(p, url1, '[链接]',   'FF8822', False)
 
                 except Exception as e:
-                    print("add_picture fail: ",mediafilepath)
+                    print("add_picture fail: ",mediafilepath,url1)
+                    raise e
             else:
                 print("not download ok",url1)
-    else:
-        p = doc_new.add_paragraph(  )
-
+    
+    #if not has_artical:
+    #    p = doc_new.add_paragraph(  )
 
     links =  find_link_html(htmll)
     if len(links)>0 and has_artical:
@@ -240,11 +257,12 @@ for timelineobj in jsonObj:
             if link=="":
                 continue
             if len(content.replace(" ",""))>1:
+                p = doc_new.add_paragraph(  )
                 try:
-                    hyperlink = add_hyperlink(p, link, content,   'FF8822', False)
+                    hyperlink = add_hyperlink(p, link, content,   '000000', False)
+                    hyperlink = add_hyperlink(p, link, "[链接]",   'FF8822', False)
                 except Exception as e:
-                    p = doc_new.add_paragraph(  )
-                    hyperlink = add_hyperlink(p, link, content,   'FF8822', False)
+                    pass
             break
 
 
